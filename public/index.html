@@ -79,6 +79,10 @@
     <script>
         let entities = [];  // Definir 'entities' a nivel global
         let lastHighlightedIndex = null; // Para rastrear el último recuadro resaltado
+        let isDrawing = false;
+        let startX = 0;
+        let startY = 0;
+        let currentRect = {};
 
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -88,10 +92,8 @@
             formData.append('document', file);
 
             if (file.type === 'application/pdf') {
-                // Renderizar la primera página del PDF
                 await renderPDF(file);
             } else {
-                // Mostrar la imagen subida
                 const imgElement = document.getElementById('canvas');
                 imgElement.src = URL.createObjectURL(file);
             }
@@ -103,7 +105,7 @@
 
             if (response.ok) {
                 const result = await response.json();
-                entities = result.entities;  // Guardar las entidades globalmente
+                entities = result.entities;
                 displayRelevantInfo(entities);
                 displayInvoiceLines(entities);
                 if (file.type === 'application/pdf' || file.type.startsWith('image/')) {
@@ -131,7 +133,6 @@
             };
             await page.render(renderContext).promise;
 
-            // Redimensionar el canvas de los recuadros para que coincida con la página renderizada
             const highlightCanvas = document.getElementById('highlight-canvas');
             highlightCanvas.width = viewport.width;
             highlightCanvas.height = viewport.height;
@@ -145,7 +146,7 @@
 
             parsedData.forEach((item, index) => {
                 const type = item.type;
-                const mentionText = item.mentionText;
+                let mentionText = item.mentionText;
 
                 if (type === 'line_item') {
                     return; // Saltar los items que son líneas de la factura
@@ -154,9 +155,13 @@
                 const itemElement = document.createElement('div');
                 itemElement.classList.add('document-info');
                 itemElement.setAttribute('data-index', index);
-                itemElement.innerHTML = `<strong>${type}:</strong> ${mentionText}`;
 
-                // Restaurar los eventos de mouseover y mouseout
+                itemElement.innerHTML = `
+                    <strong>${type}:</strong>
+                    <input type="text" value="${mentionText}" data-type="${type}" data-index="${index}" class="editable-input">
+                    <button onclick="updateValue(${index})">Actualizar</button>
+                `;
+
                 itemElement.addEventListener('mouseover', () => highlightBox(index));
                 itemElement.addEventListener('mouseout', () => clearPreviousHighlight(false));
 
@@ -186,7 +191,6 @@
                         <hr>
                     `;
 
-                    // Restaurar los eventos de mouseover y mouseout
                     lineItemElement.addEventListener('mouseover', () => highlightBox(index));
                     lineItemElement.addEventListener('mouseout', () => clearPreviousHighlight(false));
 
@@ -211,21 +215,18 @@
                             const x1 = vertices[2].x * canvas.width;
                             const y1 = vertices[2].y * canvas.height;
 
-                            // Dibujar el recuadro
                             context.beginPath();
                             context.rect(x0, y0, x1 - x0, y1 - y0);
                             context.lineWidth = 2;
                             context.strokeStyle = 'red';
                             context.stroke();
 
-                            // Guardar la información del recuadro
                             entity.boundingBox = { x0, y0, x1, y1 };
                         }
                     });
                 }
             });
 
-            // Agregar evento para manejar el clic sobre los recuadros
             canvas.addEventListener('click', (event) => {
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
@@ -233,7 +234,6 @@
                 const clickX = (event.clientX - rect.left) * scaleX;
                 const clickY = (event.clientY - rect.top) * scaleY;
 
-                // Limpiar cualquier resaltado previo tanto en texto como en el recuadro
                 removeHighlightText();
                 clearPreviousHighlight(true);
 
@@ -247,7 +247,7 @@
                                 highlightText(index);
                                 highlightBox(index);
                                 lastHighlightedIndex = index;
-                                return; // detener la iteración una vez encontrado
+                                return;
                             }
                         }
                     }
@@ -260,10 +260,8 @@
             const context = canvas.getContext('2d');
             const entity = entities[index];
 
-            // Limpiar solo la parte del canvas donde estaba el último recuadro resaltado
             clearPreviousHighlight(false);
 
-            // Resaltar la caja específica
             if (entity.boundingBox) {
                 context.beginPath();
                 context.rect(entity.boundingBox.x0, entity.boundingBox.y0, entity.boundingBox.x1 - entity.boundingBox.x0, entity.boundingBox.y1 - entity.boundingBox.y0);
@@ -277,10 +275,8 @@
             const canvas = document.getElementById('highlight-canvas');
             const context = canvas.getContext('2d');
 
-            // Limpiar el canvas de cualquier resaltado previo
             context.clearRect(0, 0, canvas.width, canvas.height);
 
-            // Volver a dibujar todos los recuadros en rojo
             entities.forEach((entity) => {
                 if (entity.boundingBox) {
                     context.beginPath();
@@ -291,7 +287,6 @@
                 }
             });
 
-            // Restaurar el último recuadro resaltado, si existe y fullClear es verdadero
             if (fullClear && lastHighlightedIndex !== null) {
                 highlightBox(lastHighlightedIndex);
             }
@@ -305,6 +300,64 @@
         function removeHighlightText() {
             const elements = document.querySelectorAll('.highlighted');
             elements.forEach(el => el.classList.remove('highlighted'));
+        }
+
+        function updateValue(index) {
+            const inputElement = document.querySelector(`input[data-index='${index}']`);
+            const newValue = inputElement.value;
+            const type = inputElement.getAttribute('data-type');
+
+            // Aquí es donde puedes enviar la actualización al servidor para entrenar la IA
+            console.log(`Tipo: ${type}, Nuevo valor: ${newValue}`);
+        }
+
+        document.getElementById('highlight-canvas').addEventListener('mousedown', startDrawing);
+        document.getElementById('highlight-canvas').addEventListener('mousemove', drawRect);
+        document.getElementById('highlight-canvas').addEventListener('mouseup', finishDrawing);
+
+        function startDrawing(event) {
+            const canvas = document.getElementById('highlight-canvas');
+            const rect = canvas.getBoundingClientRect();
+
+            startX = event.clientX - rect.left;
+            startY = event.clientY - rect.top;
+            isDrawing = true;
+        }
+
+        function drawRect(event) {
+            if (!isDrawing) return;
+
+            const canvas = document.getElementById('highlight-canvas');
+            const context = canvas.getContext('2d');
+            const rect = canvas.getBoundingClientRect();
+            const mouseX = event.clientX - rect.left;
+            const mouseY = event.clientY - rect.top;
+
+            const width = mouseX - startX;
+            const height = mouseY - startY;
+
+            clearPreviousHighlight(false);
+
+            context.beginPath();
+            context.rect(startX, startY, width, height);
+            context.lineWidth = 2;
+            context.strokeStyle = 'green';
+            context.stroke();
+
+            currentRect = { startX, startY, width, height };
+        }
+
+        function finishDrawing(event) {
+            isDrawing = false;
+
+            const value = prompt('Introduce el valor para el nuevo item:');
+            const type = prompt('Introduce el tipo de dato (e.g., invoice_id, total_amount):');
+
+            if (value && type) {
+                console.log(`Nuevo item - Tipo: ${type}, Valor: ${value}, Rectángulo:`, currentRect);
+
+                // Aquí puedes agregar lógica para enviar esta información a la API
+            }
         }
     </script>
 </body>
