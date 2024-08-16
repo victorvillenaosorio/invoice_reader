@@ -227,8 +227,11 @@
                 }
             });
 
-            // Evento para manejar el clic en recuadros existentes o iniciar el dibujo de un nuevo recuadro
             canvas.addEventListener('mousedown', (event) => {
+                removeHighlightText();  // Desmarcar todas las propiedades de la izquierda
+                clearPreviousHighlight(true);  // Limpiar resaltados anteriores
+                lastHighlightedIndex = null;
+
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
@@ -242,6 +245,7 @@
                     if (x0 && y0 && x1 && y1) {
                         if (clickX >= x0 && clickX <= x1 && clickY >= y0 && clickY <= y1) {
                             clickedOnExistingBox = true;
+
                             highlightText(index);
                             highlightBox(index);
                             lastHighlightedIndex = index;
