@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document AI Web</title>
+</head>
+<body>
+    <h1>Upload a Document</h1>
+    <form id="uploadForm" enctype="multipart/form-data">
+        <input type="file" name="document" id="document" accept=".pdf,.jpg,.jpeg,.png" required />
+        <button type="submit">Upload</button>
+    </form>
+    <h2>Processed Text</h2>
+    <h3>General information</h3>
+    <div id="general_info"></div>
+    <br />
+    <h3>Invoice lines</h3>
+    <div id="invoice_lines"></div>
+
+    <script>
+        document.getElementById('uploadForm').addEventListener('submit', async (event) => {
+            event.preventDefault();
+            const formData = new FormData();
+            formData.append('document', document.getElementById('document').files[0]);
+
+            const response = await fetch('/upload', {
+                method: 'POST',
+                body: formData,
+            });
+
+            if (response.ok) {
+                const result = await response.json();
+                
+                if (result.entities && Array.isArray(result.entities)) {
+                    displayRelevantInfo(result.entities);
+                    displayInvoiceLines(result.entities);
+                } else {
+                    console.error('Unexpected response format:', result);
+                    document.getElementById('general_info').textContent = 'Unexpected response format. Check the console for details.';
+                }
+            } else {
+                document.getElementById('general_info').textContent = 'Error processing document.';
+            }
+        });
+
+        function displayRelevantInfo(parsedData) {
+            const resultElement = document.getElementById('general_info');
+            resultElement.innerHTML = ''; // Limpiar cualquier contenido previo
+
+            parsedData.forEach(item => {
+                const type = item.type;
+                const mentionText = item.mentionText;
+
+                if (type === 'line_item') {
+                    return; // Saltar los items que son líneas de la factura
+                }
+
+                const itemElement = document.createElement('div');
+                itemElement.classList.add('document-info');
+                itemElement.innerHTML = `<strong>${type}:</strong> ${mentionText}`;
+
+                resultElement.appendChild(itemElement);
+            });
+        }
+
+        function displayInvoiceLines(parsedData) {
+            const resultElement = document.getElementById('invoice_lines');
+            resultElement.innerHTML = ''; // Limpiar cualquier contenido previo
+
+            parsedData.forEach(item => {
+                if (item.type === 'line_item') {
+                    const description = item.properties.find(prop => prop.type === 'line_item/description')?.mentionText || '';
+                    const amount = item.properties.find(prop => prop.type === 'line_item/amount')?.mentionText || '';
+                    const quantity = item.properties.find(prop => prop.type === 'line_item/quantity')?.mentionText || '';
+                    const unitPrice = item.properties.find(prop => prop.type === 'line_item/unit_price')?.mentionText || '';
+
+                    const lineItemElement = document.createElement('div');
+                    lineItemElement.classList.add('invoice-line');
+                    lineItemElement.innerHTML = `
+                        <strong>Description:</strong> ${description} <br>
+                        <strong>Quantity:</strong> ${quantity} <br>
+                        <strong>Unit Price:</strong> ${unitPrice} <br>
+                        <strong>Amount:</strong> ${amount} <br>
+                        <hr>
+                    `;
+
+                    resultElement.appendChild(lineItemElement);
+                }
+            });
+        }
+    </script>
+</body>
+</html>
