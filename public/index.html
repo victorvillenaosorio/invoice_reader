@@ -227,31 +227,31 @@
                 }
             });
 
-            canvas.addEventListener('click', (event) => {
+            // Evento para manejar el clic en recuadros existentes o iniciar el dibujo de un nuevo recuadro
+            canvas.addEventListener('mousedown', (event) => {
                 const rect = canvas.getBoundingClientRect();
                 const scaleX = canvas.width / rect.width;
                 const scaleY = canvas.height / rect.height;
                 const clickX = (event.clientX - rect.left) * scaleX;
                 const clickY = (event.clientY - rect.top) * scaleY;
 
-                removeHighlightText();
-                clearPreviousHighlight(true);
-
-                lastHighlightedIndex = null;
+                let clickedOnExistingBox = false;
 
                 entities.forEach((entity, index) => {
                     const { x0, y0, x1, y1 } = entity.boundingBox || {};
                     if (x0 && y0 && x1 && y1) {
                         if (clickX >= x0 && clickX <= x1 && clickY >= y0 && clickY <= y1) {
-                            if (lastHighlightedIndex !== index) {
-                                highlightText(index);
-                                highlightBox(index);
-                                lastHighlightedIndex = index;
-                                return;
-                            }
+                            clickedOnExistingBox = true;
+                            highlightText(index);
+                            highlightBox(index);
+                            lastHighlightedIndex = index;
                         }
                     }
                 });
+
+                if (!clickedOnExistingBox) {
+                    startDrawing(event, scaleX, scaleY);
+                }
             });
         }
 
@@ -307,20 +307,18 @@
             const newValue = inputElement.value;
             const type = inputElement.getAttribute('data-type');
 
-            // Aquí es donde puedes enviar la actualización al servidor para entrenar la IA
             console.log(`Tipo: ${type}, Nuevo valor: ${newValue}`);
         }
 
-        document.getElementById('highlight-canvas').addEventListener('mousedown', startDrawing);
         document.getElementById('highlight-canvas').addEventListener('mousemove', drawRect);
         document.getElementById('highlight-canvas').addEventListener('mouseup', finishDrawing);
 
-        function startDrawing(event) {
+        function startDrawing(event, scaleX, scaleY) {
             const canvas = document.getElementById('highlight-canvas');
             const rect = canvas.getBoundingClientRect();
 
-            startX = event.clientX - rect.left;
-            startY = event.clientY - rect.top;
+            startX = (event.clientX - rect.left) * scaleX;
+            startY = (event.clientY - rect.top) * scaleY;
             isDrawing = true;
         }
 
@@ -330,8 +328,10 @@
             const canvas = document.getElementById('highlight-canvas');
             const context = canvas.getContext('2d');
             const rect = canvas.getBoundingClientRect();
-            const mouseX = event.clientX - rect.left;
-            const mouseY = event.clientY - rect.top;
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (event.clientX - rect.left) * scaleX;
+            const mouseY = (event.clientY - rect.top) * scaleY;
 
             const width = mouseX - startX;
             const height = mouseY - startY;
@@ -348,6 +348,7 @@
         }
 
         function finishDrawing(event) {
+            if (!isDrawing) return;
             isDrawing = false;
 
             const value = prompt('Introduce el valor para el nuevo item:');
@@ -355,8 +356,6 @@
 
             if (value && type) {
                 console.log(`Nuevo item - Tipo: ${type}, Valor: ${value}, Rectángulo:`, currentRect);
-
-                // Aquí puedes agregar lógica para enviar esta información a la API
             }
         }
     </script>
