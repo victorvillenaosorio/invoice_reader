@@ -30,7 +30,7 @@
             position: absolute;
             top: 0;
             left: 0;
-            pointer-events: none;
+            pointer-events: auto; /* Habilitar eventos en el canvas */
         }
 
         .document-info, .invoice-line {
@@ -78,6 +78,7 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
         let entities = [];  // Definir 'entities' a nivel global
+        let lastHighlightedIndex = null; // Para rastrear el último recuadro resaltado
 
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -134,6 +135,8 @@
             const highlightCanvas = document.getElementById('highlight-canvas');
             highlightCanvas.width = viewport.width;
             highlightCanvas.height = viewport.height;
+
+            drawBoundingBoxes(entities); // Asegurarse de que los recuadros se dibujen después de renderizar la página
         }
 
         function displayRelevantInfo(parsedData) {
@@ -153,8 +156,9 @@
                 itemElement.setAttribute('data-index', index);
                 itemElement.innerHTML = `<strong>${type}:</strong> ${mentionText}`;
 
+                // Restaurar los eventos de mouseover y mouseout
                 itemElement.addEventListener('mouseover', () => highlightBox(index));
-                itemElement.addEventListener('mouseout', () => removeHighlightBox(index));
+                itemElement.addEventListener('mouseout', () => clearPreviousHighlight(false));
 
                 resultElement.appendChild(itemElement);
             });
@@ -182,8 +186,9 @@
                         <hr>
                     `;
 
+                    // Restaurar los eventos de mouseover y mouseout
                     lineItemElement.addEventListener('mouseover', () => highlightBox(index));
-                    lineItemElement.addEventListener('mouseout', () => removeHighlightBox(index));
+                    lineItemElement.addEventListener('mouseout', () => clearPreviousHighlight(false));
 
                     resultElement.appendChild(lineItemElement);
                 }
@@ -192,7 +197,6 @@
 
         function drawBoundingBoxes(entities) {
             const canvas = document.getElementById('highlight-canvas');
-            const canvas2 = document.getElementById('canvas');
             const context = canvas.getContext('2d');
 
             context.clearRect(0, 0, canvas.width, canvas.height);
@@ -222,24 +226,33 @@
             });
 
             // Agregar evento para manejar el clic sobre los recuadros
-            /* canvas2.addEventListener('click', (event) => {
-                let isInPath = false;
+            canvas.addEventListener('click', (event) => {
+                const rect = canvas.getBoundingClientRect();
+                const scaleX = canvas.width / rect.width;
+                const scaleY = canvas.height / rect.height;
+                const clickX = (event.clientX - rect.left) * scaleX;
+                const clickY = (event.clientY - rect.top) * scaleY;
+
+                // Limpiar cualquier resaltado previo tanto en texto como en el recuadro
+                removeHighlightText();
+                clearPreviousHighlight(true);
+
+                lastHighlightedIndex = null;
+
                 entities.forEach((entity, index) => {
                     const { x0, y0, x1, y1 } = entity.boundingBox || {};
                     if (x0 && y0 && x1 && y1) {
-                        if (event.offsetX >= x0 && event.offsetX <= x1 && event.offsetY >= y0 && event.offsetY <= y1) {
-                            highlightText(index);
-                            highlightBox(index);
-                            isInPath = true;
+                        if (clickX >= x0 && clickX <= x1 && clickY >= y0 && clickY <= y1) {
+                            if (lastHighlightedIndex !== index) {
+                                highlightText(index);
+                                highlightBox(index);
+                                lastHighlightedIndex = index;
+                                return; // detener la iteración una vez encontrado
+                            }
                         }
                     }
                 });
-
-                if (!isInPath) {
-                    removeHighlightText();
-                    removeHighlightBox();
-                }
-            }); */
+            });
         }
 
         function highlightBox(index) {
@@ -247,8 +260,8 @@
             const context = canvas.getContext('2d');
             const entity = entities[index];
 
-            // Redibujar todas las cajas
-            drawBoundingBoxes(entities);
+            // Limpiar solo la parte del canvas donde estaba el último recuadro resaltado
+            clearPreviousHighlight(false);
 
             // Resaltar la caja específica
             if (entity.boundingBox) {
@@ -260,8 +273,28 @@
             }
         }
 
-        function removeHighlightBox() {
-            drawBoundingBoxes(entities);
+        function clearPreviousHighlight(fullClear) {
+            const canvas = document.getElementById('highlight-canvas');
+            const context = canvas.getContext('2d');
+
+            // Limpiar el canvas de cualquier resaltado previo
+            context.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Volver a dibujar todos los recuadros en rojo
+            entities.forEach((entity) => {
+                if (entity.boundingBox) {
+                    context.beginPath();
+                    context.rect(entity.boundingBox.x0, entity.boundingBox.y0, entity.boundingBox.x1 - entity.boundingBox.x0, entity.boundingBox.y1 - entity.boundingBox.y0);
+                    context.lineWidth = 2;
+                    context.strokeStyle = 'red';
+                    context.stroke();
+                }
+            });
+
+            // Restaurar el último recuadro resaltado, si existe y fullClear es verdadero
+            if (fullClear && lastHighlightedIndex !== null) {
+                highlightBox(lastHighlightedIndex);
+            }
         }
 
         function highlightText(index) {
