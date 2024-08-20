@@ -59,7 +59,7 @@
         <input type="file" name="document" id="document" accept=".pdf,.jpg,.jpeg,.png" required />
         <button type="submit">Upload</button>
     </form>
-    
+
     <div id="content">
         <div id="text-info">
             <h2>Processed Text</h2>
@@ -77,12 +77,12 @@
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.10.377/pdf.min.js"></script>
     <script>
-        let entities = [];  // Definir 'entities' a nivel global
-        let lastHighlightedIndex = null; // Para rastrear el último recuadro resaltado
+        let entities = [];
+        let lastHighlightedIndex = null;
         let isDrawing = false;
         let startX = 0;
         let startY = 0;
-        let currentRect = {};
+        let currentRect = {};        
 
         document.getElementById('uploadForm').addEventListener('submit', async (event) => {
             event.preventDefault();
@@ -137,19 +137,19 @@
             highlightCanvas.width = viewport.width;
             highlightCanvas.height = viewport.height;
 
-            drawBoundingBoxes(entities); // Asegurarse de que los recuadros se dibujen después de renderizar la página
+            drawBoundingBoxes(entities);
         }
 
         function displayRelevantInfo(parsedData) {
             const resultElement = document.getElementById('general_info');
-            resultElement.innerHTML = ''; // Limpiar cualquier contenido previo
+            resultElement.innerHTML = '';
 
             parsedData.forEach((item, index) => {
                 const type = item.type;
                 let mentionText = item.mentionText;
 
                 if (type === 'line_item') {
-                    return; // Saltar los items que son líneas de la factura
+                    return;
                 }
 
                 const itemElement = document.createElement('div');
@@ -171,7 +171,7 @@
 
         function displayInvoiceLines(parsedData) {
             const resultElement = document.getElementById('invoice_lines');
-            resultElement.innerHTML = ''; // Limpiar cualquier contenido previo
+            resultElement.innerHTML = '';
 
             parsedData.forEach((item, index) => {
                 if (item.type === 'line_item') {
@@ -228,8 +228,8 @@
             });
 
             canvas.addEventListener('mousedown', (event) => {
-                removeHighlightText();  // Desmarcar todas las propiedades de la izquierda
-                clearPreviousHighlight(true);  // Limpiar resaltados anteriores
+                removeHighlightText();
+                clearPreviousHighlight(true);
                 lastHighlightedIndex = null;
 
                 const rect = canvas.getBoundingClientRect();
@@ -355,6 +355,24 @@
             if (!isDrawing) return;
             isDrawing = false;
 
+            const canvas = document.getElementById('highlight-canvas');
+            const rect = canvas.getBoundingClientRect();
+            const scaleX = canvas.width / rect.width;
+            const scaleY = canvas.height / rect.height;
+            const mouseX = (event.clientX - rect.left) * scaleX;
+            const mouseY = (event.clientY - rect.top) * scaleY;
+
+            const distanceX = Math.abs(mouseX - startX);
+            const distanceY = Math.abs(mouseY - startY);
+
+            const threshold = 5; // Umbral de 5 píxeles
+
+            if (distanceX < threshold && distanceY < threshold) {
+                // No crear recuadro si el mouseup es muy cercano al mousedown
+                clearPreviousHighlight(false);
+                return;
+            }
+
             const value = prompt('Introduce el valor para el nuevo item:');
             const type = prompt('Introduce el tipo de dato (e.g., invoice_id, total_amount):');
 
@@ -362,6 +380,7 @@
                 console.log(`Nuevo item - Tipo: ${type}, Valor: ${value}, Rectángulo:`, currentRect);
             }
         }
+        
     </script>
 </body>
 </html>
