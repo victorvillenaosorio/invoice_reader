@@ -23,7 +23,7 @@ const client = new DocumentProcessorServiceClient({
 
 app.use(express.static('public'));
 
-app.post('/upload', upload.single('document'), async (req, res) => {
+app.post('/api/upload', upload.single('document'), async (req, res) => {
     const filePath = req.file.path;
 
     const name = `projects/${projectId}/locations/${location}/processors/${processorId}`;
