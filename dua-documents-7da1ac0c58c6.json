@@ -1,0 +1,13 @@
+{
+  "type": "service_account",
+  "project_id": "dua-documents",
+  "private_key_id": "7da1ac0c58c6b0ddbfa932211fa23098409dc4e5",
+  "private_key": "-----BEGIN PRIVATE KEY-----\nMIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCarl3zCFgYrF4s\npy9UDYMw4FdwFumbuILq8QJZ65yaIGi9rX1ZcDLsDWNkgHkz9fRqR79LsPCccPak\nvSrO2AEqP8BVmfmJgdSHvMPkUWwjND3mY87Rz0nDiDOkDIDbe6I9xMCgvEeOYUy4\nE/F0/RQaYm2duY1xoCrsbiJ/MJrOfzpWxo6GL+8Nb5Arws6e1URrJpfm0fKafo/W\nJ5CYnjFJ059IqBYRcXWCMYmFwuwAu+aw4ZN2c/0nsxiZbfw180F2vazL2UQDAJTP\niUteBvUnxdhhhuxqxb/8A4c1ca9rkeQS9hfd7RZNAJp/294CTMlNOEJ76QmqlAsD\nlWz343LnAgMBAAECggEAGAMSJznYCy8piL8EqYSreqPo5Ef6SH0yfZb0/tEvmfwx\nUPikqS9csv46ZrihmBUKCzxLZaGjHctUzoAQgX77Yfv24ehUL394ZwCWXFQzeEeS\nMGNgENFKqdBJS/cmQxbZ5G2DBbC/XvVF0UbvSHJHyPdsqCZ3iaML5sYLaY6PCZfC\nwkCNwhTb8aedccmsIAzxihyluHxBt50jANvifpkLBaonqOa64BkucFOAvojzcD6y\njp5ekgHkW8t5ETlBWwUs6BjEgaSk2rFQkOJ2IjvCr+FqqsQSRD8Gud2foZtCkOqw\nnvFQFbwKbVBaOK6Ri/+oC5vWCz9gJc/fGsEp/fgoiQKBgQDLX6x2gW6w1eEoW04h\nCnucHoHj/tmOSe4n4vq4uRQ+P2ZIVQlRi9paQx2z2/dXdH2+iabEyE+e5wN7yMQW\nIgRae9HzOnpVsX26BQDjCa1+QEwEoWQmoNzEUHtjdiYO0gSDxMSCiY+nBT2NKrmU\n3KGcjTsked7vYlFsUh22P798IwKBgQDCtRdtIQfquLzJbZ72ZDQKaJYcyD2Eldds\n+WbRfIaUJmdmws+ZD67yi4hURAkLtwISlKHFBDz8M0lnZtQOrxvFDbelvu/uy+IK\nL1GAXAS50lhBGrZi6CpZUAwOh2+wofEeAHVdBZ5PKdT2itqVCpAfm7LCyjvwzO+V\nhsr1lwOIbQKBgCaPa1nEzMIGq3xFY5jsLee5+RLLnWBXMCqr5LHllar/xlrslKm7\nhJkcpKMXj9wrIDRiURZ6jG4qiwSLWnJ/3KdzVqlxawSYdKgyjqp9iUGo20D9gMm6\nMmGeiOag3jJtK6H4SvIdNvmKCtObSDirZJEUTiRqXxSwZZPONgf6KkpVAoGANngu\ny4q4CkQQHFGcbNVvcZH8nKSwAQ1iLMxApU4u3/c2ahsJtIocqSG7y8cUuMBDxirq\nbpFW9j7qxBCSNmFqZWAHBkk6GhXTcIH4TO5xLALaSaxNZbIJVt774HynFETZjUkX\njCRsOz06pJYHvDYuR4lpIvEsf5r1U2FYGghbJqkCgYByzAMBe2vmYCooAGj3R6ir\narF2Gp1o1LpcvtCErB7/PZgP4X6RscujciAAn08vOBRNJJzFdw7iDp26ohiemRlL\n5upeaJUtH53yVsgt4d2KZTIIeLSGV92jF35TP4wS34l3s0KhT1XHISx26f3WUNEU\ndRrirzdhbdJHe2o565ksZQ==\n-----END PRIVATE KEY-----\n",
+  "client_email": "document-ai-service-account@dua-documents.iam.gserviceaccount.com",
+  "client_id": "113226548658036510856",
+  "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+  "token_uri": "https://oauth2.googleapis.com/token",
+  "auth_provider_x509_cert_url": "https://www.googleapis.com/oauth2/v1/certs",
+  "client_x509_cert_url": "https://www.googleapis.com/robot/v1/metadata/x509/document-ai-service-account%40dua-documents.iam.gserviceaccount.com",
+  "universe_domain": "googleapis.com"
+}

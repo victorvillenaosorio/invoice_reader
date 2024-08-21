@@ -55,6 +55,32 @@ app.post('/upload', upload.single('document'), async (req, res) => {
     }
 });
 
+app.post('/update-entity', async (req, res) => {
+    const {index, type, newValue, boundingBox} = req.body;
+
+    // Configura tu solicitud a Google Document AI según las necesidades de tu proyecto
+    const updateRequest = {
+        // Aquí deberás configurar la solicitud correcta a Document AI, posiblemente usando Human-in-the-Loop (HITL)
+        // o cualquier otro método de actualización soportado por Document AI.
+        name: `projects/${projectId}/locations/${location}/processors/${processorId}`,
+        // Añade otros parámetros necesarios según la API de Document AI
+        document: {
+            text: newValue,
+            // Posiblemente añadas la información de boundingBox si es relevante para la actualización
+            boundingBox: boundingBox,
+        },
+        // Otros campos según la API de Document AI
+    };
+
+    try {
+        const [response] = await client.processDocument(updateRequest);
+        res.json(response);
+    } catch (error) {
+        console.error('Error updating entity:', error);
+        res.status(500).json({error: 'Error updating entity'});
+    }
+});
+
 app.listen(3000, () => {
     console.log('Server is running on http://localhost:3000');
     console.log(`GOOGLE_APPLICATION_CREDENTIALS: ${process.env.GOOGLE_APPLICATION_CREDENTIALS}`);
