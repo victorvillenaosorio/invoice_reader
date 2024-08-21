@@ -13,7 +13,10 @@ const projectId = '111826428225';
 const location = 'eu';
 const processorId = 'b36a7139fa2d6949';
 
+const googleCredentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
+
 const client = new DocumentProcessorServiceClient({
+    credentials: googleCredentials,
     apiEndpoint: `${location}-documentai.googleapis.com`
 });
 
