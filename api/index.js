@@ -13,6 +13,10 @@ const projectId = '111826428225';
 const location = 'eu';
 const processorId = 'b36a7139fa2d6949';
 
+if (!process.env.GOOGLE_CREDENTIALS_JSON) {
+    throw new Error('Missing GOOGLE_CREDENTIALS_JSON environment variable');
+}
+
 const googleCredentials = JSON.parse(process.env.GOOGLE_CREDENTIALS_JSON);
 
 const client = new DocumentProcessorServiceClient({
