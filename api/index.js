@@ -7,7 +7,11 @@ const path = require('path');
 const fs2 = require('fs');
 
 const app = express();
-const upload = multer({ dest: 'uploads/' });
+// Configurar multer para almacenamiento en memoria
+const upload = multer({
+    storage: multer.memoryStorage(),
+});
+
 
 const projectId = '111826428225';
 const location = 'eu';
